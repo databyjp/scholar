@@ -1,11 +1,11 @@
 # File: queries.py
 
 from app.utils import COLLECTION_NAME
-from weaviate import WeaviateAsyncClient
+from weaviate import WeaviateClient
 
 
 def hybrid_search(
-    client: WeaviateAsyncClient, query_term: str, target_vector: str, limit: int = 10
+    client: WeaviateClient, query_term: str, target_vector: str, limit: int = 10
 ):
     collection = client.collections.get(COLLECTION_NAME)
     response = collection.query.hybrid(
@@ -15,7 +15,7 @@ def hybrid_search(
 
 
 def rag(
-    client: WeaviateAsyncClient,
+    client: WeaviateClient,
     prompt: str,
     query_term: str,
     target_vector: str,

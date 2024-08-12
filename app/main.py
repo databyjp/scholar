@@ -1,32 +1,25 @@
 # File: main.py
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
-from weaviate import WeaviateAsyncClient
-from app.utils import COLLECTION_NAME
+from weaviate import WeaviateClient
+from app.utils import COLLECTION_NAME, get_weaviate_client
 from typing import List, Optional
 from datetime import datetime
 import uvicorn
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Initialize Weaviate client
-async_client = WeaviateAsyncClient("http://localhost:8080")
+client = get_weaviate_client()
 
 
-@asynccontextmanager
-async def lifespan(
-    app: FastAPI,
-):  # See https://fastapi.tiangolo.com/advanced/events/#lifespan-function
-    # Connect the client to Weaviate
-    await async_client.connect()
-    yield
-    # Close the connection to Weaviate
-    await async_client.close()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 class SearchRequest(BaseModel):
@@ -51,14 +44,9 @@ class RAGResult(BaseModel):
     references: List[SearchResult]
 
 
-class RAGResult(BaseModel):
-    generated_text: str
-    search_results: List[SearchResult]
-
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.post("/search", response_class=HTMLResponse)
@@ -70,14 +58,15 @@ async def search(
 ):
     try:
         collection = client.collections.get(COLLECTION_NAME)
-        response = await collection.query.hybrid(
+        response = collection.query.hybrid(
             query=query, target_vector=target_vector, limit=limit
         )
         results = [SearchResult(**obj.properties) for obj in response.objects]
         return templates.TemplateResponse(
-            "search_results.html", {"request": request, "results": results}
+            request=request, name="search_results.html", context={"results": results}
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -91,7 +80,7 @@ async def rag(
 ):
     try:
         collection = client.collections.get(COLLECTION_NAME)
-        response = await collection.generate.hybrid(
+        response = collection.generate.hybrid(
             query=query, target_vector=target_vector, grouped_task=prompt, limit=limit
         )
         result = RAGResult(
@@ -99,9 +88,10 @@ async def rag(
             references=[SearchResult(**obj.properties) for obj in response.objects],
         )
         return templates.TemplateResponse(
-            "rag_results.html", {"request": request, "result": result}
+            request=request, name="rag_results.html", context={"result": result}
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 

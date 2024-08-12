@@ -1,7 +1,7 @@
 import weaviate
 import os
 from pathlib import Path
-from preprocessing.helpers import pdf_to_chunks
+from helpers import pdf_to_chunks
 import arxiv
 import json
 from random import randint
@@ -25,20 +25,20 @@ client = weaviate.connect_to_local(
 # Get the existing "Arxiv" collection
 arxiv = client.collections.get("Arxiv")
 
-total_chunks = 0
 chunks_inserted = 0
 
 papers_list = list(DL_DIR.glob("*.pdf"))
 
 counter = 0
 max_docs = len(papers_list)
-# max_docs = 10  # Uncomment this line to limit the number of papers to insert
+max_docs = 20  # Uncomment this line to limit the number of papers to insert
 
 print(f"Found {len(papers_list)} papers in the target folder.")
 
 # Use Weaviate's batch insertion for efficient data loading
 with arxiv.batch.fixed_size(200) as batch:
     for paper in papers_list:
+        print(f"Processing {paper.stem}...")
         if counter > max_docs:
             print(f"Max count of {max_docs} reached. Terminating.")
             break
@@ -46,12 +46,13 @@ with arxiv.batch.fixed_size(200) as batch:
         chunks = pdf_to_chunks(paper)
         metadata = json.loads((DL_DIR / f"{paper.stem}.json").read_text())
 
-        for chunk in chunks:
+        for chunk_no, chunk in enumerate(chunks):
             # Prepare properties for each chunk
             properties = {
                 "title": metadata["title"],
                 "summary": metadata["summary"],
                 "chunk": chunk,
+                "chunk_no": chunk_no,
                 "authors": metadata["authors"],
                 "categories": metadata["categories"],
                 "arxiv_id": metadata["arxiv_id"],
@@ -59,16 +60,16 @@ with arxiv.batch.fixed_size(200) as batch:
             }
             # Add object to the batch with a generated UUID
             batch.add_object(properties=properties, uuid=generate_uuid5(properties))
-            total_chunks += len(chunks)
 
             # Break if too many errors occur during insertion
             if batch.number_errors > 50:
                 print(
-                    f"Breaking out of insertion loop; as {batch.number_errors} seen out of {total_chunks} object insertions."
+                    f"Breaking out of insertion loop; as {batch.number_errors} seen out of {chunks_inserted} object insertions."
                 )
                 break
 
         chunks_inserted += len(chunks)
+
         counter += 1
 
 # Check for and report any failed object insertions
@@ -78,7 +79,7 @@ if len(arxiv.batch.failed_objects) > 0:
         print(f"Failure: {failed_object.original_uuid}")
         print(failed_object.message)
 
-print(f"Inserted {total_chunks} chunks from {counter} papers.")
+print(f"Inserted {chunks_inserted} chunks from {counter} papers.")
 
 # Close the Weaviate client connection
 client.close()
