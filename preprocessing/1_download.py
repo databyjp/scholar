@@ -1,7 +1,6 @@
 import arxiv
 from pathlib import Path
 import json
-from datetime import datetime
 
 DL_DIR = Path("downloaded_papers")
 DL_DIR.mkdir(exist_ok=True)

@@ -1,4 +1,5 @@
-- Suite of features help you to scale beyond the prototyping stage.
+"Weaviate offers a suite of features help you to scale beyond the prototyping stage."
+
 - Features to demonstrate:
     - Different index types and configurations can optimize speed/accuracy/memory trade-offs
         - Single vector vs multiple, named vectors

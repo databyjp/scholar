@@ -7,7 +7,7 @@ DL_DIR = Path("downloaded_papers")
 
 
 def get_chunks(text: str, n_words: int = 150, overlap: float = 0.2) -> List[str]:
-    words = re.findall(r'\S+|\n', text)
+    words = re.findall(r"\S+|\n", text)
     chunk_size = int(n_words) + 1
     overlap_size = int(overlap * n_words)
     chunks = []

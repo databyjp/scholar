@@ -1,0 +1,19 @@
+<div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold mb-4">RAG Result</h3>
+    <div class="mb-4 p-4 border border-gray-200 rounded">
+        <h4 class="font-bold">Generated Text</h4>
+        <p>{{ result.generated_text }}</p>
+    </div>
+    <h4 class="font-bold mt-4">References</h4>
+    {% for ref in result.references %}
+        <div class="mb-4 p-4 border border-gray-200 rounded">
+            <h5 class="font-bold">{{ ref.title }}</h5>
+            <p class="text-sm text-gray-600">Authors: {{ ref.authors|join(', ') }}</p>
+            <p class="text-sm text-gray-600">Categories: {{ ref.categories|join(', ') }}</p>
+            <p class="text-sm text-gray-600">Published: {{ ref.published }}</p>
+            <p class="text-sm text-gray-600">ArXiv ID: {{ ref.arxiv_id }}</p>
+            <p class="mt-2"><strong>Summary:</strong> {{ ref.summary }}</p>
+            <p class="mt-2"><strong>Chunk:</strong> {{ ref.chunk }}</p>
+        </div>
+    {% endfor %}
+</div>
