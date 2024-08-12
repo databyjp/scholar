@@ -38,16 +38,11 @@ grpcService:
   annotations: {}
 
 modules:
-  text2vec-cohere:
-    enabled: true
-    apiKey: ''
-
-  generative-cohere:
-    enabled: true
-    apiKey: ''
-
   text2vec-ollama:
     enabled: true
 
   generative-ollama:
     enabled: true
+
+env:
+  ENABLE_API_BASED_MODULES: true
