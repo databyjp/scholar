@@ -100,7 +100,7 @@
 <script>
     let timeData = [];
     let memoryData = [];
-    const maxDataPoints = 20;
+    const maxDataPoints = 180;
 
     function initChart() {
         Plotly.newPlot('memoryChart', [{
@@ -108,6 +108,7 @@
             y: memoryData,
             type: 'scatter',
             mode: 'lines+markers',
+            marker: {size: 3},
             line: {color: 'rgb(75, 192, 192)'},
             name: 'Total Memory (MB)'
         }], {

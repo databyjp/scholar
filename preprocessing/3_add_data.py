@@ -8,7 +8,7 @@ from random import randint
 from datetime import datetime
 from weaviate.util import generate_uuid5
 from pathlib import Path
-
+import time
 
 DL_DIR = Path("downloaded_papers")
 API_KEY_HEADERS = ["ANTHROPIC", "COHERE", "OPENAI"]
@@ -35,11 +35,14 @@ max_docs = len(papers_list)
 
 print(f"Found {len(papers_list)} papers in the target folder.")
 
+# Start timing
+start_time = time.time()
+
 # Use Weaviate's batch insertion for efficient data loading
 with arxiv.batch.fixed_size(200) as batch:
     for paper in papers_list:
         print(f"Processing {paper.stem}...")
-        if counter > max_docs:
+        if counter >= max_docs:
             print(f"Max count of {max_docs} reached. Terminating.")
             break
 
@@ -61,7 +64,7 @@ with arxiv.batch.fixed_size(200) as batch:
             # Add object to the batch with a generated UUID
             batch.add_object(properties=properties, uuid=generate_uuid5(properties))
 
-            # Break if too many errors occur during insertion
+        # Break if too many errors occur during insertion
         if batch.number_errors > 50:
             print(
                 f"Breaking out of insertion loop; as {batch.number_errors} seen out of {chunks_inserted} object insertions."
@@ -72,6 +75,15 @@ with arxiv.batch.fixed_size(200) as batch:
 
         counter += 1
 
+        # Print progress and time taken every 10 papers
+        if counter % 10 == 0:
+            elapsed_time = time.time() - start_time
+            print(f"Processed {counter} papers. Time elapsed: {elapsed_time:.2f} seconds")
+
+# End timing
+end_time = time.time()
+total_time = end_time - start_time
+
 # Check for and report any failed object insertions
 if len(arxiv.batch.failed_objects) > 0:
     print(f"Failed to insert {len(arxiv.batch.failed_objects)} objects.")
@@ -80,6 +92,9 @@ if len(arxiv.batch.failed_objects) > 0:
         print(failed_object.message)
 
 print(f"Inserted {chunks_inserted} chunks from {counter} papers.")
+print(f"Total time taken: {total_time:.2f} seconds")
+print(f"Average time per paper: {total_time/counter:.2f} seconds")
+print(f"Average time per chunk: {total_time/chunks_inserted:.2f} seconds")
 
 # Close the Weaviate client connection
 client.close()

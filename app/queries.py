@@ -23,7 +23,7 @@ def rag(
 ):
     collection = client.collections.get(COLLECTION_NAME)
     response = collection.generate.hybrid(
-        query=query_term, target_vector=target_vector, grouped_task=prompt, limit=limit
+        query=query_term, target_vector=target_vector, grouped_task=prompt, limit=limit, grouped_properties=["chunk"]
     )
     return response
 

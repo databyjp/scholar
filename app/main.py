@@ -104,12 +104,15 @@ async def memory_usage():
             ["go", "tool", "pprof", "-top", "http://localhost:6060/debug/pprof/heap"],
             capture_output=True,
             text=True,
-            timeout=10  # Set a timeout to prevent hanging
+            timeout=10,  # Set a timeout to prevent hanging
         )
 
         if result.returncode == 0:
             # Parse the output to get the total memory usage
-            match = re.search(r"Showing nodes accounting for (\d+\.?\d*)MB, (\d+\.?\d*)% of (\d+\.?\d*)MB total", result.stdout)
+            match = re.search(
+                r"Showing nodes accounting for (\d+\.?\d*)MB, (\d+\.?\d*)% of (\d+\.?\d*)MB total",
+                result.stdout,
+            )
             if match:
                 total_mb = float(match.group(3))
                 return JSONResponse({"total_mb": total_mb})
