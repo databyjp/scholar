@@ -3,10 +3,9 @@ from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from contextlib import asynccontextmanager
 from pydantic import BaseModel
-from weaviate import WeaviateClient
 from app.utils import COLLECTION_NAME, get_weaviate_client
+from app.queries import get_object_count
 from typing import List, Optional
 from datetime import datetime
 import uvicorn
@@ -122,6 +121,16 @@ async def memory_usage():
         print(f"Error fetching memory usage: {e}")
 
     raise HTTPException(status_code=500, detail="Failed to fetch memory usage")
+
+
+@app.get("/object_count")
+async def object_count():
+    try:
+        count = get_object_count(client)
+        return JSONResponse({"count": count})
+    except Exception as e:
+        print(f"Error fetching object count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch object count")
 
 
 if __name__ == "__main__":

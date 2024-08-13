@@ -80,11 +80,15 @@
         </div>
     </div>
 
-    <!-- Memory Usage Chart Sidebar -->
+    <!-- Sidebar -->
     <div class="w-1/3 pl-4">
         <div class="bg-white p-4 rounded-lg shadow sticky top-4">
             <h3 class="text-lg font-semibold mb-4">Memory Usage</h3>
             <div id="memoryChart" style="width:100%; height:210px;"></div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow mt-4">
+            <h3 class="text-lg font-semibold mb-2">Object Count</h3>
+            <p id="objectCount" class="text-3xl font-bold text-blue-600">Loading...</p>
         </div>
     </div>
 </div>
@@ -142,9 +146,20 @@
             .catch(error => console.error('Error fetching memory usage:', error));
     }
 
+    function updateObjectCount() {
+        fetch('/object_count')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('objectCount').textContent = data.count.toLocaleString();
+            })
+            .catch(error => console.error('Error fetching object count:', error));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initChart();
-        setInterval(updateChart, 5000);  // Update every 5 seconds
+        setInterval(updateChart, 2000);  // Update memory usage every 5 seconds
+        updateObjectCount();  // Initial update
+        setInterval(updateObjectCount, 5000);  // Update object count every 10 seconds
     });
 </script>
 {% endblock %}
