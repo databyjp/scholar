@@ -28,7 +28,7 @@ extracted_files = list(EXTRACTED_DIR.glob("*.json"))
 
 counter = 0
 max_docs = len(extracted_files)
-max_docs = 100  # Uncomment this line to limit the number of papers to insert
+max_docs = 300  # Uncomment this line to limit the number of papers to insert
 
 print(f"Found {len(extracted_files)} extracted files.")
 
