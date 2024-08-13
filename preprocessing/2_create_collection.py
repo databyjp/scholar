@@ -63,20 +63,14 @@ arxiv = client.collections.create(
     vectorizer_config=[
         # Configure named vectors for different property combinations
         Configure.NamedVectors.text2vec_cohere(
-            name="title",
-            source_properties=["title"],
-        ),
-        Configure.NamedVectors.text2vec_cohere(
-            name="summary",
-            source_properties=["summary"],
-        ),
-        Configure.NamedVectors.text2vec_cohere(
             name="chunk",
             source_properties=["chunk"],
+            vector_index_config=Configure.VectorIndex.hnsw()  # Use HNSW index for chunk vectors
         ),
         Configure.NamedVectors.text2vec_cohere(
             name="all_text",
             source_properties=["title", "summary", "chunk"],
+            vector_index_config=Configure.VectorIndex.hnsw()  # Use HNSW index for all_text vectors
         ),
     ],
     generative_config=Configure.Generative.anthropic(

@@ -1,14 +1,33 @@
+<!-- File: ./templates/search_results.html -->
 <div class="bg-white p-6 rounded-lg shadow">
     <h3 class="text-lg font-semibold mb-4">Search Results</h3>
     {% for result in results %}
-        <div class="mb-4 p-4 border border-gray-200 rounded">
+        <div x-data="{ expandedSummary: false, expandedChunk: false }" class="mb-4 p-4 border border-gray-200 rounded">
             <h4 class="font-bold">{{ result.title }}</h4>
             <p class="text-sm text-gray-600">Authors: {{ result.authors|join(', ') }}</p>
             <p class="text-sm text-gray-600">Categories: {{ result.categories|join(', ') }}</p>
             <p class="text-sm text-gray-600">Published: {{ result.published }}</p>
             <p class="text-sm text-gray-600">ArXiv ID: {{ result.arxiv_id }}</p>
-            <p class="mt-2"><strong>Summary:</strong> {{ result.summary }}</p>
-            <p class="mt-2"><strong>Chunk:</strong> {{ result.chunk }}</p>
+
+            <div class="mt-2">
+                <strong>Summary:</strong>
+                <span x-show="!expandedSummary">{{ result.summary[:200] }}...</span>
+                <span x-show="expandedSummary">{{ result.summary }}</span>
+                <button @click="expandedSummary = !expandedSummary"
+                        class="text-blue-500 hover:text-blue-700 ml-2">
+                    <span x-text="expandedSummary ? 'Show less' : 'Show more'"></span>
+                </button>
+            </div>
+
+            <div class="mt-2">
+                <strong>Chunk:</strong>
+                <span x-show="!expandedChunk">{{ result.chunk[:200] }}...</span>
+                <span x-show="expandedChunk">{{ result.chunk }}</span>
+                <button @click="expandedChunk = !expandedChunk"
+                        class="text-blue-500 hover:text-blue-700 ml-2">
+                    <span x-text="expandedChunk ? 'Show less' : 'Show more'"></span>
+                </button>
+            </div>
         </div>
     {% endfor %}
 </div>
