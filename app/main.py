@@ -11,6 +11,7 @@ from datetime import datetime
 import uvicorn
 import subprocess
 import re
+import anthropic
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -36,7 +37,6 @@ class SearchResult(BaseModel):
 
 class RAGResult(BaseModel):
     generated_text: str
-    references: List[SearchResult]
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -72,21 +72,27 @@ async def rag(
     limit: int = Form(10),
 ):
     try:
+        collection = client.collections.get(COLLECTION_NAME)
+        response = collection.query.hybrid(
+            query=query, target_vector=target_vector, limit=limit
+        )
+        results = [SearchResult(**obj.properties) for obj in response.objects]
+
+        concat_text = "\n=====".join([f"{r.title}\n{r.chunk}" for r in results])
+
+        llm_response = anthropic.Anthropic().messages.create(
+            model="claude-3-5-sonnet-20240620",
+            max_tokens=2048,
+            messages=[
+                {"role": "user", "content": f"Based on the following papers:\n{concat_text}\n\n, respond to: {prompt}"}
+            ]
+        )
+
+        generated_text = llm_response.content[0].text
+
         # Placeholder implementation
-        generated_text = f"This is a placeholder generated text for the prompt: {prompt}"
-        references = [
-            SearchResult(
-                title="Placeholder Title",
-                summary="Placeholder summary",
-                chunk="Placeholder chunk",
-                chunk_no=1,
-                authors=["Author 1", "Author 2"],
-                categories=["Category 1", "Category 2"],
-                published=datetime.now(),
-                arxiv_id="0000.00000"
-            )
-        ]
-        result = RAGResult(generated_text=generated_text, references=references)
+        # generated_text = f"This is a placeholder generated text for the prompt: {prompt}"
+        result = RAGResult(generated_text=generated_text)
         return templates.TemplateResponse(
             request=request, name="rag_results.html", context={"result": result}
         )
