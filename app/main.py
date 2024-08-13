@@ -19,15 +19,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Initialize Weaviate client
 client = get_weaviate_client()
 
-
-app = FastAPI()
-
-
 class SearchRequest(BaseModel):
     query: str
     target_vector: str
     limit: Optional[int] = 10
-
 
 class SearchResult(BaseModel):
     title: str
@@ -39,16 +34,13 @@ class SearchResult(BaseModel):
     published: datetime
     arxiv_id: str
 
-
 class RAGResult(BaseModel):
     generated_text: str
     references: List[SearchResult]
 
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
-
 
 @app.post("/search", response_class=HTMLResponse)
 async def search(
@@ -80,14 +72,21 @@ async def rag(
     limit: int = Form(10),
 ):
     try:
-        collection = client.collections.get(COLLECTION_NAME)
-        response = collection.generate.hybrid(
-            query=query, target_vector=target_vector, grouped_task=prompt, limit=limit
-        )
-        result = RAGResult(
-            generated_text=response.generated,
-            references=[SearchResult(**obj.properties) for obj in response.objects],
-        )
+        # Placeholder implementation
+        generated_text = f"This is a placeholder generated text for the prompt: {prompt}"
+        references = [
+            SearchResult(
+                title="Placeholder Title",
+                summary="Placeholder summary",
+                chunk="Placeholder chunk",
+                chunk_no=1,
+                authors=["Author 1", "Author 2"],
+                categories=["Category 1", "Category 2"],
+                published=datetime.now(),
+                arxiv_id="0000.00000"
+            )
+        ]
+        result = RAGResult(generated_text=generated_text, references=references)
         return templates.TemplateResponse(
             request=request, name="rag_results.html", context={"result": result}
         )
