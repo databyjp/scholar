@@ -1,4 +1,4 @@
-# File: queries.py
+# File: ./app/queries.py
 
 from app.utils import COLLECTION_NAME
 from weaviate import WeaviateClient

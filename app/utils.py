@@ -1,4 +1,4 @@
-# File: utils.py
+# File: ./app/utils.py
 
 import weaviate
 from weaviate import WeaviateClient
