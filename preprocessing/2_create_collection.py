@@ -74,9 +74,7 @@ arxiv = client.collections.create(
             vector_index_config=Configure.VectorIndex.hnsw(),  # Use HNSW index for all_text vectors
         ),
     ],
-    generative_config=Configure.Generative.cohere(
-        model="command-r-plus"
-    ),
+    generative_config=Configure.Generative.cohere(model="command-r-plus"),
 )
 
 client.close()

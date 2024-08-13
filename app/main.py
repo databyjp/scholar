@@ -1,4 +1,5 @@
 # File: ./app/main.py
+from typing import Literal
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -12,6 +13,7 @@ import uvicorn
 import subprocess
 import re
 import anthropic
+from openai import OpenAI
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -20,10 +22,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Initialize Weaviate client
 client = get_weaviate_client()
 
+
 class SearchRequest(BaseModel):
     query: str
     target_vector: str
     limit: Optional[int] = 10
+
 
 class SearchResult(BaseModel):
     title: str
@@ -35,12 +39,49 @@ class SearchResult(BaseModel):
     published: datetime
     arxiv_id: str
 
+
 class RAGResult(BaseModel):
     generated_text: str
+
+
+# Function to generate text using LLM
+def generate_text_with_llm(
+    context: str, prompt: str, provider: Literal["Anthropic", "OpenAI"] = "Anthropic"
+) -> str:
+    if provider == "Anthropic":
+        llm_response = anthropic.Anthropic().messages.create(
+            model="claude-3-5-sonnet-20240620",
+            max_tokens=2048,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Based on the following papers:\n{context}\n\n, respond to: {prompt}",
+                }
+            ],
+        )
+        return llm_response.content[0].text
+
+    elif provider == "OpenAI":
+        client = OpenAI()
+
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {
+                    "role": "user",
+                    "content": f"Based on the following papers:\n{context}\n\n, respond to: {prompt}",
+                },
+            ],
+        )
+
+        return completion.choices[0].message
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
+
 
 @app.post("/search", response_class=HTMLResponse)
 async def search(
@@ -80,18 +121,8 @@ async def rag(
 
         concat_text = "\n=====".join([f"{r.title}\n{r.chunk}" for r in results])
 
-        llm_response = anthropic.Anthropic().messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=2048,
-            messages=[
-                {"role": "user", "content": f"Based on the following papers:\n{concat_text}\n\n, respond to: {prompt}"}
-            ]
-        )
+        generated_text = generate_text_with_llm(concat_text, prompt, "Anthropic")
 
-        generated_text = llm_response.content[0].text
-
-        # Placeholder implementation
-        # generated_text = f"This is a placeholder generated text for the prompt: {prompt}"
         result = RAGResult(generated_text=generated_text)
         return templates.TemplateResponse(
             request=request, name="rag_results.html", context={"result": result}
