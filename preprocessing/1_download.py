@@ -9,7 +9,7 @@ DL_DIR.mkdir(exist_ok=True)
 def download_latest_papers(query=None, max_results=10):
     # Create a search query for computer science papers
     search_query = (
-        "abs:'rag' AND cat:cs.ai"  # 'cs' is the category for computer science
+        "(abs:'rag' AND cat:cs.ai) OR (abs:'vector database' AND cat:cs.ai)"  # 'cs' is the category for computer science
     )
     if query:
         search_query += f" AND {query}"

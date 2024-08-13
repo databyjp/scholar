@@ -31,7 +31,7 @@ papers_list = list(DL_DIR.glob("*.pdf"))
 
 counter = 0
 max_docs = len(papers_list)
-max_docs = 20  # Uncomment this line to limit the number of papers to insert
+# max_docs = 20  # Uncomment this line to limit the number of papers to insert
 
 print(f"Found {len(papers_list)} papers in the target folder.")
 
@@ -62,11 +62,11 @@ with arxiv.batch.fixed_size(200) as batch:
             batch.add_object(properties=properties, uuid=generate_uuid5(properties))
 
             # Break if too many errors occur during insertion
-            if batch.number_errors > 50:
-                print(
-                    f"Breaking out of insertion loop; as {batch.number_errors} seen out of {chunks_inserted} object insertions."
-                )
-                break
+        if batch.number_errors > 50:
+            print(
+                f"Breaking out of insertion loop; as {batch.number_errors} seen out of {chunks_inserted} object insertions."
+            )
+            break
 
         chunks_inserted += len(chunks)
 

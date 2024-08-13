@@ -2,81 +2,149 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div x-data="{ activeTab: 'search' }" class="mb-8">
-    <!-- Tabs -->
-    <div class="flex border-b border-gray-200 mb-4">
-        <button @click="activeTab = 'search'" :class="{'border-b-2 border-blue-500': activeTab === 'search'}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none">
-            Search
-        </button>
-        <button @click="activeTab = 'rag'" :class="{'border-b-2 border-blue-500': activeTab === 'rag'}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none">
-            RAG Query
-        </button>
+<div class="flex">
+    <!-- Main content area -->
+    <div class="w-2/3 pr-4">
+        <div x-data="{ activeTab: 'search' }" class="mb-8">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-4">
+                <button @click="activeTab = 'search'" :class="{'border-b-2 border-blue-500': activeTab === 'search'}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none">
+                    Search
+                </button>
+                <button @click="activeTab = 'rag'" :class="{'border-b-2 border-blue-500': activeTab === 'rag'}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none">
+                    RAG Query
+                </button>
+            </div>
+
+            <!-- Search Tab Content -->
+            <div x-show="activeTab === 'search'" class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Search</h2>
+                <form hx-post="/search" hx-target="#search-results" hx-indicator="#search-indicator">
+                <div class="mb-4">
+                    <label for="search-query" class="block text-sm font-medium text-gray-700">Query</label>
+                    <input type="text" id="search-query" name="query" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mb-4">
+                    <label for="search-target-vector" class="block text-sm font-medium text-gray-700">Target Vector</label>
+                    <select id="search-target-vector" name="target_vector" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="chunk">Chunk</option>
+                        <option value="all_text">All Text</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="search-limit" class="block text-sm font-medium text-gray-700">Limit</label>
+                    <input type="number" id="search-limit" name="limit" value="5" min="1" max="20" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Search
+                </button>
+                </form>
+                <div id="search-indicator" class="htmx-indicator mt-4 text-center">Searching...</div>
+            </div>
+
+            <!-- RAG Tab Content -->
+            <div x-show="activeTab === 'rag'" class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">RAG Query</h2>
+                <form hx-post="/rag" hx-target="#rag-results" hx-indicator="#rag-indicator">
+                    <div class="mb-4">
+                        <label for="rag-prompt" class="block text-sm font-medium text-gray-700">Prompt</label>
+                        <textarea id="rag-prompt" name="prompt" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="rag-query" class="block text-sm font-medium text-gray-700">Query</label>
+                        <input type="text" id="rag-query" name="query" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="mb-4">
+                        <label for="rag-target-vector" class="block text-sm font-medium text-gray-700">Target Vector</label>
+                        <select id="rag-target-vector" name="target_vector" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="chunk">Chunk</option>
+                            <option value="all_text">All Text</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="rag-limit" class="block text-sm font-medium text-gray-700">Limit</label>
+                        <input type="number" id="rag-limit" name="limit" value="5" min="1" max="20" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Generate
+                    </button>
+                </form>
+                <div id="rag-indicator" class="htmx-indicator mt-4 text-center">Generating...</div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="mb-8">
+            <div id="search-results" x-show="activeTab === 'search'"></div>
+            <div id="rag-results" x-show="activeTab === 'rag'"></div>
+        </div>
     </div>
 
-    <!-- Search Tab Content -->
-    <div x-show="activeTab === 'search'" class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-xl font-semibold mb-4">Search</h2>
-        <form hx-post="/search" hx-target="#search-results" hx-indicator="#search-indicator">
-            <div class="mb-4">
-                <label for="search-query" class="block text-sm font-medium text-gray-700">Query</label>
-                <input type="text" id="search-query" name="query" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-            </div>
-            <div class="mb-4">
-                <label for="search-target-vector" class="block text-sm font-medium text-gray-700">Target Vector</label>
-                <select id="search-target-vector" name="target_vector" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="chunk">Chunk</option>
-                    <option value="all_text">All Text</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="search-limit" class="block text-sm font-medium text-gray-700">Limit</label>
-                <input type="number" id="search-limit" name="limit" value="5" min="1" max="20" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-            </div>
-            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Search
-            </button>
-        </form>
-        <div id="search-indicator" class="htmx-indicator mt-4 text-center">Searching...</div>
+    <!-- Memory Usage Chart Sidebar -->
+    <div class="w-1/3 pl-4">
+        <div class="bg-white p-4 rounded-lg shadow sticky top-4">
+            <h3 class="text-lg font-semibold mb-4">Memory Usage</h3>
+            <div id="memoryChart" style="width:100%; height:210px;"></div>
+        </div>
     </div>
-
-    <!-- RAG Tab Content -->
-    <div x-show="activeTab === 'rag'" class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-xl font-semibold mb-4">RAG Query</h2>
-        <form hx-post="/rag" hx-target="#rag-results" hx-indicator="#rag-indicator">
-            <div class="mb-4">
-                <label for="rag-prompt" class="block text-sm font-medium text-gray-700">Prompt</label>
-                <textarea id="rag-prompt" name="prompt" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="rag-query" class="block text-sm font-medium text-gray-700">Query</label>
-                <input type="text" id="rag-query" name="query" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-            </div>
-            <div class="mb-4">
-                <label for="rag-target-vector" class="block text-sm font-medium text-gray-700">Target Vector</label>
-                <select id="rag-target-vector" name="target_vector" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="chunk">Chunk</option>
-                    <option value="all_text">All Text</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="rag-limit" class="block text-sm font-medium text-gray-700">Limit</label>
-                <input type="number" id="rag-limit" name="limit" value="5" min="1" max="20" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-            </div>
-            <button type="submit" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                Generate
-            </button>
-        </form>
-        <div id="rag-indicator" class="htmx-indicator mt-4 text-center">Generating...</div>
-    </div>
-</div>
-
-<!-- Results Section -->
-<div class="mb-8">
-    <div id="search-results" x-show="activeTab === 'search'"></div>
-    <div id="rag-results" x-show="activeTab === 'rag'"></div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    let timeData = [];
+    let memoryData = [];
+    const maxDataPoints = 20;
+
+    function initChart() {
+        Plotly.newPlot('memoryChart', [{
+            x: timeData,
+            y: memoryData,
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: {color: 'rgb(75, 192, 192)'},
+            name: 'Total Memory (MB)'
+        }], {
+            xaxis: {
+                showticklabels: false,
+                title: ''
+            },
+            yaxis: {
+                title: '',
+                tickfont: {size: 10}
+            },
+            autosize: true,
+            margin: { l: 40, r: 20, t: 10, b: 20 },
+            font: {size: 10}
+        });
+    }
+
+    function updateChart() {
+        fetch('/memory_usage')
+            .then(response => response.json())
+            .then(data => {
+                const now = new Date();
+                timeData.push(now);
+                memoryData.push(data.total_mb);
+
+                if (timeData.length > maxDataPoints) {
+                    timeData.shift();
+                    memoryData.shift();
+                }
+
+                Plotly.update('memoryChart', {
+                    x: [timeData],
+                    y: [memoryData]
+                });
+            })
+            .catch(error => console.error('Error fetching memory usage:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initChart();
+        setInterval(updateChart, 5000);  // Update every 5 seconds
+    });
+</script>
 {% endblock %}
