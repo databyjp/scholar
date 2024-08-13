@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from app.utils import COLLECTION_NAME, get_weaviate_client
-from app.queries import get_object_count
+from app.queries import get_vector_count
 from typing import List, Optional
 from datetime import datetime
 import uvicorn
@@ -170,7 +170,7 @@ async def memory_usage():
 @app.get("/object_count")
 async def object_count():
     try:
-        count = get_object_count(client)
+        count = get_vector_count(client)
         return JSONResponse({"count": count})
     except Exception as e:
         print(f"Error fetching object count: {e}")

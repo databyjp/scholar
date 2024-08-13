@@ -32,9 +32,14 @@ def rag(
     return response
 
 
-def get_object_count(
+def get_vector_count(
     client: WeaviateClient,
 ):
     collection = client.collections.get(COLLECTION_NAME)
     response = collection.aggregate.over_all(total_count=True)
-    return response.total_count
+
+    if collection.config.get().vector_config is not None:
+        n_vectors = len(collection.config.get().vector_config)
+        return response.total_count * n_vectors
+    else:
+        return response.total_count

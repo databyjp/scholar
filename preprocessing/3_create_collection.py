@@ -66,12 +66,16 @@ arxiv = client.collections.create(
         Configure.NamedVectors.text2vec_cohere(
             name="chunk",
             source_properties=["chunk"],
-            vector_index_config=Configure.VectorIndex.hnsw(),
+            vector_index_config=Configure.VectorIndex.hnsw(
+                quantizer=Configure.VectorIndex.Quantizer.bq()
+            ),
         ),
         Configure.NamedVectors.text2vec_cohere(
             name="all_text",
             source_properties=["title", "summary", "chunk"],
-            vector_index_config=Configure.VectorIndex.hnsw(),
+            vector_index_config=Configure.VectorIndex.hnsw(
+                quantizer=Configure.VectorIndex.Quantizer.bq()
+            ),
         ),
     ],
     generative_config=Configure.Generative.cohere(model="command-r-plus"),
