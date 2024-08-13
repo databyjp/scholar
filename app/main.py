@@ -14,6 +14,7 @@ import subprocess
 import re
 import anthropic
 from openai import OpenAI
+from markdown2 import Markdown
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -55,7 +56,7 @@ def generate_text_with_llm(
             messages=[
                 {
                     "role": "user",
-                    "content": f"Based on the following papers:\n{context}\n\n, respond to: {prompt}",
+                    "content": f"Based on the following papers:\n{context}\n\n, respond to the following, and respond in Markdown text: {prompt}",
                 }
             ],
         )
@@ -70,7 +71,7 @@ def generate_text_with_llm(
                 {"role": "system", "content": "You are a helpful assistant."},
                 {
                     "role": "user",
-                    "content": f"Based on the following papers:\n{context}\n\n, respond to: {prompt}",
+                    "content": f"Based on the following papers:\n{context}\n\n, respond to the following, and respond in Markdown text: {prompt}",
                 },
             ],
         )
@@ -121,9 +122,13 @@ async def rag(
 
         concat_text = "\n=====".join([f"{r.title}\n{r.chunk}" for r in results])
 
-        generated_text = generate_text_with_llm(concat_text, prompt, "OpenAI")
+        generated_text = generate_text_with_llm(concat_text, prompt, "Anthropic")
 
-        result = RAGResult(generated_text=generated_text)
+        # Convert markdown to HTML
+        markdowner = Markdown()
+        generated_html = markdowner.convert(generated_text)
+
+        result = RAGResult(generated_text=generated_html)
         return templates.TemplateResponse(
             request=request, name="rag_results.html", context={"result": result}
         )
