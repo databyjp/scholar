@@ -75,7 +75,7 @@ def generate_text_with_llm(
             ],
         )
 
-        return completion.choices[0].message
+        return completion.choices[0].message.content
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -121,7 +121,7 @@ async def rag(
 
         concat_text = "\n=====".join([f"{r.title}\n{r.chunk}" for r in results])
 
-        generated_text = generate_text_with_llm(concat_text, prompt, "Anthropic")
+        generated_text = generate_text_with_llm(concat_text, prompt, "OpenAI")
 
         result = RAGResult(generated_text=generated_text)
         return templates.TemplateResponse(
