@@ -1,3 +1,4 @@
+# File: ./preprocessing/2_create_collection.py
 from weaviate.classes.config import Property, DataType, Configure, Tokenization
 import weaviate
 from pathlib import Path
@@ -73,8 +74,8 @@ arxiv = client.collections.create(
             vector_index_config=Configure.VectorIndex.hnsw(),  # Use HNSW index for all_text vectors
         ),
     ],
-    generative_config=Configure.Generative.anthropic(
-        model="claude-3-5-sonnet-20240620"  # Use the specified model for generation (default model)
+    generative_config=Configure.Generative.cohere(
+        model="command-r-plus"
     ),
 )
 

@@ -1,16 +1,13 @@
+# File: ./preprocessing/3_add_data.py
 import weaviate
 import os
 from pathlib import Path
-from helpers import pdf_to_chunks
-import arxiv
 import json
-from random import randint
 from datetime import datetime
 from weaviate.util import generate_uuid5
-from pathlib import Path
 import time
 
-DL_DIR = Path("downloaded_papers")
+EXTRACTED_DIR = Path("extracted_text")
 API_KEY_HEADERS = ["ANTHROPIC", "COHERE", "OPENAI"]
 
 # Connect to a local Weaviate instance
@@ -27,27 +24,30 @@ arxiv = client.collections.get("Arxiv")
 
 chunks_inserted = 0
 
-papers_list = list(DL_DIR.glob("*.pdf"))
+extracted_files = list(EXTRACTED_DIR.glob("*.json"))
 
 counter = 0
-max_docs = len(papers_list)
-# max_docs = 20  # Uncomment this line to limit the number of papers to insert
+max_docs = len(extracted_files)
+max_docs = 50  # Uncomment this line to limit the number of papers to insert
 
-print(f"Found {len(papers_list)} papers in the target folder.")
+print(f"Found {len(extracted_files)} extracted files.")
 
 # Start timing
 start_time = time.time()
 
 # Use Weaviate's batch insertion for efficient data loading
 with arxiv.batch.fixed_size(200) as batch:
-    for paper in papers_list:
-        print(f"Processing {paper.stem}...")
+    for extracted_file in extracted_files:
+        print(f"Processing {extracted_file.stem}...")
         if counter >= max_docs:
             print(f"Max count of {max_docs} reached. Terminating.")
             break
 
-        chunks = pdf_to_chunks(paper)
-        metadata = json.loads((DL_DIR / f"{paper.stem}.json").read_text())
+        with open(extracted_file, "r") as f:
+            extracted_data = json.load(f)
+
+        metadata = extracted_data["metadata"]
+        chunks = extracted_data["chunks"]
 
         for chunk_no, chunk in enumerate(chunks):
             # Prepare properties for each chunk
@@ -78,7 +78,9 @@ with arxiv.batch.fixed_size(200) as batch:
         # Print progress and time taken every 10 papers
         if counter % 10 == 0:
             elapsed_time = time.time() - start_time
-            print(f"Processed {counter} papers. Time elapsed: {elapsed_time:.2f} seconds")
+            print(
+                f"Processed {counter} papers. Time elapsed: {elapsed_time:.2f} seconds"
+            )
 
 # End timing
 end_time = time.time()
